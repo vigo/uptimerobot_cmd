@@ -54,4 +54,40 @@ module UptimerobotCmd
                           :rows => rows
     end
   end
+  
+  def self.human_readable_status(status_code)
+    case status_code
+    when '0'
+      ['paused', :light_black]
+    when '1'
+      ['not checked yet', :black]
+    when '2'
+      ['up', :yellow]
+    when '8'
+      ['seems down', :light_red]
+    when '9'
+      ['down', :red]
+    end
+  end
+  
+  def self.get_list_monitors
+    if self.apikey_defined
+      monitors = ::UptimerobotCmd.get_monitors
+      rows = []
+      monitors.each do |monitor|
+        monitor_id = monitor['id']
+        monitor_id = monitor_id.colorize(:green) if ENV['UPTIMEROBOT_COLORIZE']
+        status_data = ::UptimerobotCmd.human_readable_status(monitor['status'])
+        status = status_data[0]
+        status = status_data[0].colorize(status_data[1]) if ENV['UPTIMEROBOT_COLORIZE']
+        friendly_name = monitor['friendlyname']
+        friendly_name = friendly_name.colorize(:light_white) if ENV['UPTIMEROBOT_COLORIZE']
+        url = monitor['url']
+        url = url.colorize(:default) if ENV['UPTIMEROBOT_COLORIZE']
+        rows << [monitor_id, status, friendly_name, url]
+      end
+      Terminal::Table.new :headings => ['ID', 'Status', 'Name', 'Url'],
+                          :rows => rows
+    end
+  end
 end
