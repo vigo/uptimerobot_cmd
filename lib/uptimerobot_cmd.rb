@@ -44,7 +44,11 @@ module UptimerobotCmd
       contacts = get_alert_contacts
       rows = []
       contacts.each do |contact|
-        rows << [contact['id'], contact['value']]
+        contact_id = contact['id']
+        contact_id = contact_id.colorize(:green) if ENV['UPTIMEROBOT_COLORIZE']
+        contact_info = contact['value']
+        contact_info = contact_info.colorize(:light_green) if ENV['UPTIMEROBOT_COLORIZE']
+        rows << [contact_id, contact_info]
       end
       Terminal::Table.new :headings => ['ID', 'Info'],
                           :rows => rows
