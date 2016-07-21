@@ -26,4 +26,5 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'httparty', '~> 0.13.7'
   spec.add_runtime_dependency 'colorize', '~> 0.8.1'
+  spec.add_runtime_dependency 'terminal-table', '~> 1.6'
 end

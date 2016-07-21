@@ -9,3 +9,4 @@
 /tmp/
 /vendor/bundle/
 .rbenv-vars
+private_test.rb

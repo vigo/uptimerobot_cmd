@@ -1,6 +1,7 @@
 require "uptimerobot_cmd/version"
 require 'colorize'
 require 'httparty'
+require 'terminal-table'
 
 module UptimerobotCmd
   APIKEY = ENV['UPTIMEROBOT_APIKEY'] || nil
@@ -35,6 +36,18 @@ module UptimerobotCmd
     if self.apikey_defined
       response = HTTParty.get(build_service_url(:get_alert_contacts))
       response["alertcontacts"]["alertcontact"]
+    end
+  end
+  
+  def self.list_alert_contacts
+    if self.apikey_defined
+      contacts = get_alert_contacts
+      rows = []
+      contacts.each do |contact|
+        rows << [contact['id'], contact['value']]
+      end
+      Terminal::Table.new :headings => ['ID', 'Info'],
+                          :rows => rows
     end
   end
 end
