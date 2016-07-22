@@ -1,6 +1,6 @@
 # UptimerobotCmd
 
-Command-line client for [Uptimerobot](https:uptimerobot.com) service.
+Command-line client for [Uptimerobot](https://uptimerobot.com) service.
 
 ## Installation
 
