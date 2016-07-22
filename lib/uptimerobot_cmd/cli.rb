@@ -35,7 +35,7 @@ module UptimerobotCmd
     end
     
     option :url, :required => true
-    option :contact_id, :required => true
+    option :contact_id
     option :name
     desc "add_new_monitor", "Add new service for monitor"
     long_desc <<-LONGDESC
@@ -47,7 +47,17 @@ module UptimerobotCmd
     def add_new_monitor
       my_options = {}
       my_options[:monitor_url] = options[:url]
-      my_options[:contact_id] = options[:contact_id]
+      if ENV['UPTIMEROBOT_DEFAULT_CONTACT']
+        my_options[:contact_id] = ENV['UPTIMEROBOT_DEFAULT_CONTACT']
+      else
+        my_options[:contact_id] = options[:contact_id] if options[:contact_id]
+      end
+      
+      unless my_options[:contact_id]
+        puts "Please provice --contact-id or set UPTIMEROBOT_DEFAULT_CONTACT environment variable"
+        exit
+      end
+      
       my_options[:friendly_name] = options[:name] if options[:name]
       begin
         response = UptimerobotCmd.add_new_monitor(my_options)
