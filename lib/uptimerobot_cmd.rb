@@ -1,4 +1,4 @@
-require "uptimerobot_cmd/version"
+require 'uptimerobot_cmd/version'
 require 'colorize'
 require 'httparty'
 require 'terminal-table'
@@ -9,51 +9,17 @@ module UptimerobotCmd
   ENDPOINT_SERVICE_URLS = {
     get_monitors: '%{base_url}/getMonitors?apiKey=%{apikey}&%{json_result}',
     get_alert_contacts: '%{base_url}/getAlertContacts?apiKey=%{apikey}&%{json_result}',
+    add_new_monitor: '%{base_url}/newMonitor?apiKey=%{apikey}&%{json_result}'\
+                     '&monitorType=%{monitor_type}'\
+                     '&monitorFriendlyName=%{friendly_name}'\
+                     '&monitorURL=%{monitor_url}'\
+                     '&monitorAlertContacts=%{contact_id}',
+    delete_monitor: '%{base_url}/deleteMonitor?apiKey=%{apikey}&%{json_result}'\
+                    '&monitorID=%{monitor_id}',
   }
-
+  
   class APIKEYError < StandardError; end
-  
-  def self.apikey_defined
-    raise APIKEYError, "Please set UPTIMEROBOT_APIKEY environment variable." unless ENV['UPTIMEROBOT_APIKEY']
-    true
-  end
-  
-  def self.build_service_url(service_key, **options)
-    options[:apikey] = APIKEY
-    options[:base_url] = ENDPOINT_BASE_URL
-    options[:json_result] = 'format=json&noJsonCallback=1'
-    ENDPOINT_SERVICE_URLS[service_key] % options
-  end
-  
-  def self.get_monitors
-    if self.apikey_defined
-      response = HTTParty.get(build_service_url(:get_monitors))
-      response["monitors"]["monitor"]
-    end
-  end
-  
-  def self.get_alert_contacts
-    if self.apikey_defined
-      response = HTTParty.get(build_service_url(:get_alert_contacts))
-      response["alertcontacts"]["alertcontact"]
-    end
-  end
-  
-  def self.list_alert_contacts
-    if self.apikey_defined
-      contacts = get_alert_contacts
-      rows = []
-      contacts.each do |contact|
-        contact_id = contact['id']
-        contact_id = contact_id.colorize(:green) if ENV['UPTIMEROBOT_COLORIZE']
-        contact_info = contact['value']
-        contact_info = contact_info.colorize(:light_green) if ENV['UPTIMEROBOT_COLORIZE']
-        rows << [contact_id, contact_info]
-      end
-      Terminal::Table.new :headings => ['ID', 'Info'],
-                          :rows => rows
-    end
-  end
+  class OptionsError < StandardError; end
   
   def self.human_readable_status(status_code)
     case status_code
@@ -69,9 +35,50 @@ module UptimerobotCmd
       ['down', :red]
     end
   end
+  def self.apikey_defined
+    raise ::UptimerobotCmd::APIKEYError, "Please set UPTIMEROBOT_APIKEY environment variable." unless ENV['UPTIMEROBOT_APIKEY']
+    true
+  end
+  
+  def self.build_service_url(service_key, **options)
+    options[:apikey] = ::UptimerobotCmd::APIKEY
+    options[:base_url] = ::UptimerobotCmd::ENDPOINT_BASE_URL
+    options[:json_result] = 'format=json&noJsonCallback=1'
+    ::UptimerobotCmd::ENDPOINT_SERVICE_URLS[service_key] % options
+  end
+  
+  def self.get_monitors
+    if ::UptimerobotCmd.apikey_defined
+      response = HTTParty.get(::UptimerobotCmd.build_service_url(:get_monitors))
+      response["monitors"]["monitor"]
+    end
+  end
+  
+  def self.get_alert_contacts
+    if ::UptimerobotCmd.apikey_defined
+      response = HTTParty.get(::UptimerobotCmd.build_service_url(:get_alert_contacts))
+      response["alertcontacts"]["alertcontact"]
+    end
+  end
+  
+  def self.list_alert_contacts
+    if ::UptimerobotCmd.apikey_defined
+      contacts = ::UptimerobotCmd.get_alert_contacts
+      rows = []
+      contacts.each do |contact|
+        contact_id = contact['id']
+        contact_id = contact_id.colorize(:green) if ENV['UPTIMEROBOT_COLORIZE']
+        contact_info = contact['value']
+        contact_info = contact_info.colorize(:light_green) if ENV['UPTIMEROBOT_COLORIZE']
+        rows << [contact_id, contact_info]
+      end
+      Terminal::Table.new :headings => ['ID', 'Info'],
+                          :rows => rows
+    end
+  end
   
   def self.get_list_monitors
-    if self.apikey_defined
+    if ::UptimerobotCmd.apikey_defined
       monitors = ::UptimerobotCmd.get_monitors
       rows = []
       monitors.each do |monitor|
@@ -88,6 +95,26 @@ module UptimerobotCmd
       end
       Terminal::Table.new :headings => ['ID', 'Status', 'Name', 'Url'],
                           :rows => rows
+    end
+  end
+  
+  def self.add_new_monitor(**options)
+    if ::UptimerobotCmd.apikey_defined
+      raise ::UptimerobotCmd::OptionsError, "Please provide url to monitor" unless options[:monitor_url]
+      options[:contact_id] ||= ENV['UPTIMEROBOT_DEFAULT_CONTACT']
+      options[:monitor_type] ||= 1
+      options[:friendly_name] ||= options[:monitor_url]
+      raise ::UptimerobotCmd::OptionsError, "Please provide Contact ID" unless options[:contact_id]
+      response = HTTParty.get(::UptimerobotCmd.build_service_url(:add_new_monitor, options))
+      [response.code, response['stat']]
+    end
+  end
+  
+  def self.delete_monitor(**options)
+    if ::UptimerobotCmd.apikey_defined
+      raise ::UptimerobotCmd::OptionsError, "Please provide site ID" unless options[:monitor_id]
+      response = HTTParty.get(::UptimerobotCmd.build_service_url(:delete_monitor, options))
+      [response.code, response['stat']]
     end
   end
 end
