@@ -19,7 +19,29 @@ gem 'uptimerobot_cmd'
 
 ## Usage
 
-TODO: Write usage instructions here
+You need to set an environment variable to use this mini tool. You need
+Uptimerobot service’s APIKEY. Please set this variable;
+
+```bash
+export UPTIMEROBOT_APIKEY=YOUR_API_KEY
+```
+
+Also, you can set default contact ID for quick monitoring.
+
+```bash
+export UPTIMEROBOT_DEFAULT_CONTACT=CONTACT_ID
+```
+
+All commands:
+
+```bash
+Commands:
+  uptimerobot_cmd add_new_monitor --contact-id=CONTACT_ID --url=URL  # Add new service for monitor
+  uptimerobot_cmd delete_monitor --monitor-id=MONITOR_ID             # Delete monitor via given monitor_id
+  uptimerobot_cmd help [COMMAND]                                     # Describe available commands or one specific command
+  uptimerobot_cmd list_contacts                                      # List current contacts for monitors
+  uptimerobot_cmd list_monitors                                      # List current monitors
+```
 
 ## Development
 
@@ -34,11 +56,18 @@ push git commits and tags, and push the `.gem` file to [rubygems.org](https://ru
 
 ### Running Tests
 
-To run private tests only:
+Run all tests via `bundle exec rake`. To run private tests only:
 
 ```bash
 bundle exec rake TEST=test/private_test.rb 
 ```
+
+Due to Security and Privacy, most of the test cases are private. You can find
+example private tests under `test/` folder.
+
+## TODO
+
+- `add_new_monitor` will have more options/features...
 
 ## Contributing
 
