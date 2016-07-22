@@ -54,6 +54,36 @@ module UptimerobotCmd
     end
   end
   
+  def self.search_in_monitors(input)
+    monitors = ::UptimerobotCmd.get_monitors
+    monitors.select{|monitor|
+      monitor['friendlyname'] =~ /#{input}/i ||
+      monitor['url'] =~ /#{input}/i
+    }
+  end
+  
+  def self.get_search_results(input)
+    results = ::UptimerobotCmd.search_in_monitors(input)
+    rows = []
+    table_title = 'Found %d monitor(s)' % results.count
+    table_title = table_title.colorize(:yellow) if ENV['UPTIMEROBOT_COLORIZE']
+    results.each do |monitor|
+      monitor_id = monitor['id']
+      monitor_id = monitor_id.colorize(:green) if ENV['UPTIMEROBOT_COLORIZE']
+      status_data = ::UptimerobotCmd.human_readable_status(monitor['status'])
+      status = status_data[0]
+      status = status_data[0].colorize(status_data[1]) if ENV['UPTIMEROBOT_COLORIZE']
+      friendly_name = monitor['friendlyname']
+      friendly_name = friendly_name.colorize(:light_white) if ENV['UPTIMEROBOT_COLORIZE']
+      url = monitor['url']
+      url = url.colorize(:default) if ENV['UPTIMEROBOT_COLORIZE']
+      rows << [monitor_id, status, friendly_name, url]
+    end
+    Terminal::Table.new :headings => ['ID', 'Status', 'Name', 'Url'],
+                        :rows => rows,
+                        :title => table_title
+  end
+    
   def self.get_alert_contacts
     if ::UptimerobotCmd.apikey_defined
       response = HTTParty.get(::UptimerobotCmd.build_service_url(:get_alert_contacts))
