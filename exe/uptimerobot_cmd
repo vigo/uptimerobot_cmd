@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/uptimerobot_cmd/cli'
+UptimerobotCmd::CLI.start(ARGV)

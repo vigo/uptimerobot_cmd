@@ -65,6 +65,8 @@ module UptimerobotCmd
     if ::UptimerobotCmd.apikey_defined
       contacts = ::UptimerobotCmd.get_alert_contacts
       rows = []
+      table_title = 'Listing %d contact(s)' % contacts.count
+      table_title = table_title.colorize(:yellow) if ENV['UPTIMEROBOT_COLORIZE']
       contacts.each do |contact|
         contact_id = contact['id']
         contact_id = contact_id.colorize(:green) if ENV['UPTIMEROBOT_COLORIZE']
@@ -73,13 +75,16 @@ module UptimerobotCmd
         rows << [contact_id, contact_info]
       end
       Terminal::Table.new :headings => ['ID', 'Info'],
-                          :rows => rows
+                          :rows => rows,
+                          :title => table_title
     end
   end
   
   def self.get_list_monitors
     if ::UptimerobotCmd.apikey_defined
       monitors = ::UptimerobotCmd.get_monitors
+      table_title = 'Monitoring %d site(s)' % monitors.count
+      table_title = table_title.colorize(:yellow) if ENV['UPTIMEROBOT_COLORIZE']
       rows = []
       monitors.each do |monitor|
         monitor_id = monitor['id']
@@ -94,7 +99,8 @@ module UptimerobotCmd
         rows << [monitor_id, status, friendly_name, url]
       end
       Terminal::Table.new :headings => ['ID', 'Status', 'Name', 'Url'],
-                          :rows => rows
+                          :rows => rows,
+                          :title => table_title
     end
   end
   
