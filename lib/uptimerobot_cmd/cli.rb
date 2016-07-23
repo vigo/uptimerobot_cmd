@@ -6,6 +6,11 @@ module UptimerobotCmd
   class CLI < Thor
     class_option :color, :type => :boolean
 
+    desc "version", "Version information"
+    def version
+      puts UptimerobotCmd::VERSION
+    end
+    
     desc "list", "List current monitors"
     long_desc <<-LONGDESC
       List current monitored services.\n

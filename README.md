@@ -46,6 +46,7 @@ Commands:
   uptimerobot_cmd help [COMMAND]      # Describe available commands or one specific command
   uptimerobot_cmd list                # List current monitors
   uptimerobot_cmd search NAME or URL  # Search in monitored services
+  uptimerobot_cmd version             # Version information
 
 Options:
   [--color], [--no-color]  
