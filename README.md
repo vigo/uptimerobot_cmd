@@ -36,12 +36,37 @@ All commands:
 
 ```bash
 Commands:
-  uptimerobot_cmd add_new_monitor --contact-id=CONTACT_ID --url=URL  # Add new service for monitor
-  uptimerobot_cmd delete_monitor --monitor-id=MONITOR_ID             # Delete monitor via given monitor_id
-  uptimerobot_cmd help [COMMAND]                                     # Describe available commands or one specific command
-  uptimerobot_cmd list_contacts                                      # List current contacts for monitors
-  uptimerobot_cmd list_monitors                                      # List current monitors
+  uptimerobot_cmd add                 # Add new service for monitoring
+  uptimerobot_cmd contacts            # List current contacts for monitors
+  uptimerobot_cmd delete              # Delete monitor
+  uptimerobot_cmd help [COMMAND]      # Describe available commands or one specific command
+  uptimerobot_cmd list                # List current monitors
+  uptimerobot_cmd search NAME or URL  # Search in monitored services
+
+Options:
+  [--color], [--no-color]  
 ```
+
+### add
+
+You can set `UPTIMEROBOT_DEFAULT_CONTACT` environment variable for default
+contact. This will help you to add more quicker. You don’t need to pass
+`--contact` if you have `UPTIMEROBOT_DEFAULT_CONTACT` environment variable set.
+
+```bash
+# without UPTIMEROBOT_DEFAULT_CONTACT
+uptimerobot_cmd add http://example.com --contact=1234567
+uptimerobot_cmd add http://example.com --name=Example --contact=1234567
+uptimerobot_cmd add http://example.com --name="Example Website" --contact=1234567
+
+# with UPTIMEROBOT_DEFAULT_CONTACT
+uptimerobot_cmd add http://example.com
+uptimerobot_cmd add http://example.com --name=Example
+uptimerobot_cmd add http://example.com --name="Example Website"
+```
+
+Will be more features for **add** soon!
+
 
 ## Development
 
@@ -64,10 +89,6 @@ bundle exec rake TEST=test/private_test.rb
 
 Due to Security and Privacy, most of the test cases are private. You can find
 example private tests under `test/` folder.
-
-## TODO
-
-- `add_new_monitor` will have more options/features...
 
 ## Contributing
 

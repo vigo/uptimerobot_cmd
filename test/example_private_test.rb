@@ -12,55 +12,15 @@ class UptimerobotCmdTest < Minitest::Test
     assert_equal 'CONTACT_ID', your_user['id']
   end
 
-  def test_get_list_alert_contacts_for_you
+  def test_get_monitors_for_you
     skip # delete this if you want to run it
-    list_contacts = ::UptimerobotCmd.list_alert_contacts
+    monitors = ::UptimerobotCmd.get_monitors
 
-    # please fix your expected_output
-    expected_output = "+---------+----------------------------+\n"\
-                      "| ID      | Info                       |\n"\
-                      "+---------+----------------------------+\n"\
-                      "| 1234567 | xxxxxxxxxxxx               |\n"\
-                      "| 1234567 | yyyyyyyyyyyy               |\n"\
-                      "| 1234567 | zzzzzzzzzzzz               |\n"\
-                      "+---------+----------------------------+"
-    assert_equal expected_output, list_contacts.to_s
+    assert_instance_of Array, monitors
+    assert_match /111111111/, monitors.to_s        # GIVE_MONITOR_ID_HERE
+    assert_match /google.com/, monitors.to_s       # GIVE_URL_HERE
   end
 
-  def test_get_list_alert_contacts_for_you_colorized
-    skip # delete this if you want to run it
-    ENV['UPTIMEROBOT_COLORIZE'] = "1"
-    list_contacts = ::UptimerobotCmd.list_alert_contacts
-
-    # please fix your expected_output
-    expected_output = "+---------+----------------------------+\n"\
-                      "| ID      | Info                       |\n"\
-                      "+---------+----------------------------+\n"\
-                      "| \e[0;32;49m1234567\e[0m | \e[0;92;49mxxxxxxxxxxxxxxxxxxxx\e[0m       |\n"\
-                      "| \e[0;32;49m1234567\e[0m | \e[0;92;49myyyyyyyyyyyy\e[0m               |\n"\
-                      "| \e[0;32;49m1234567\e[0m | \e[0;92;49m905322131966\e[0m               |\n"\
-                      "| \e[0;32;49m1234567\e[0m | \e[0;92;49mzzzzzzzzzzzzzzzzzzzzzzzzzz\e[0m |\n"\
-                      "+---------+----------------------------+"
-    assert_equal expected_output, list_contacts.to_s
-    ENV.delete('UPTIMEROBOT_COLORIZE')
-  end
-  
-  def test_get_list_monitors_for_you
-    skip # delete this if you want to run it
-    monitors = ::UptimerobotCmd.get_list_monitors.to_s
-    assert_match /111111111/, monitors        # GIVE_MONITOR_ID_HERE
-    assert_match /google.com/, monitors       # GIVE_URL_HERE
-  end
-
-  def test_get_list_monitors_for_you_colorized
-    skip # delete this if you want to run it
-    ENV['UPTIMEROBOT_COLORIZE'] = "1"
-    monitors = ::UptimerobotCmd.get_list_monitors.to_s
-    assert_match /111111111/, monitors        # GIVE_MONITOR_ID_HERE
-    assert_match /google.com/, monitors       # GIVE_URL_HERE
-    ENV.delete('UPTIMEROBOT_COLORIZE')
-  end
-  
   def test_add_new_monitor_for_you_without_options
     skip # delete this if you want to run it
     assert_raises(::UptimerobotCmd::OptionsError) { ::UptimerobotCmd.add_new_monitor }
@@ -73,6 +33,8 @@ class UptimerobotCmdTest < Minitest::Test
 
   def test_add_new_monitor_for_you_without_contact_id
     skip # delete this if you want to run it
+    buffer = ENV['UPTIMEROBOT_DEFAULT_CONTACT']
+    ENV.delete('UPTIMEROBOT_DEFAULT_CONTACT')
     assert_raises(::UptimerobotCmd::OptionsError) { ::UptimerobotCmd.add_new_monitor(monitor_url: 'https://google.com') }
   end
 
