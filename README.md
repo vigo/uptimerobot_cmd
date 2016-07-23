@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/vigo/uptimerobot_cmd.svg?branch=master)](https://travis-ci.org/vigo/uptimerobot_cmd)
+
 # UptimerobotCmd
 
 Command-line client for [Uptimerobot](https://uptimerobot.com) service.
