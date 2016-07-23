@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/vigo/uptimerobot_cmd.svg?branch=master)](https://travis-ci.org/vigo/uptimerobot_cmd)
-![Version](https://img.shields.io/badge/version-0.2.1-yellow.svg)
+![Version](https://img.shields.io/badge/version-0.3.0-yellow.svg)
 
 
 # UptimerobotCmd
@@ -71,6 +71,22 @@ uptimerobot_cmd add http://example.com --name="Example Website"
 ```
 
 Will be more features for **add** soon!
+
+### list
+
+Output is sorted by **Friendly Name** by default. Use `--sort=` option.
+Valid values are: `name`, `url` and `status`
+
+```bash
+uptimerobot_cmd list
+uptimerobot_cmd list --sort=url
+uptimerobot_cmd list --sort=status
+
+# for colorized output
+uptimerobot_cmd list --color
+uptimerobot_cmd list --sort=url --color
+uptimerobot_cmd list --sort=status --color
+```
 
 
 ## Development

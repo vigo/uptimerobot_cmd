@@ -12,15 +12,23 @@ module UptimerobotCmd
     end
     
     desc "list", "List current monitors"
+    option :sort, default: 'name'
     long_desc <<-LONGDESC
-      List current monitored services.\n
+      List current monitored services. Output is sorted by friendly name.\n
       
       $ uptimerobot_cmd list\n
-      $ uptimerobot_cmd list --color
+      $ uptimerobot_cmd list --color\n
+      $ uptimerobot_cmd list --sort=name --color\n
+      $ uptimerobot_cmd list --sort=url --color\n
+      $ uptimerobot_cmd list --sort=status --color
     LONGDESC
     def list
       ENV['UPTIMEROBOT_COLORIZE'] = '1' if options[:color]
-      monitors = UptimerobotCmd.get_monitors
+      sort_field = 'friendlyname'
+      if ['url', 'status'].include?(options[:sort])
+        sort_field = options[:sort]
+      end
+      monitors = UptimerobotCmd.get_monitors.sort_by{ |el| el[sort_field] }
       table_title = 'Monitoring %d site(s)' % monitors.count
       puts print_monitors(monitors, table_title)
     end
