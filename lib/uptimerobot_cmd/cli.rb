@@ -4,38 +4,50 @@ require 'uri'
 
 module UptimerobotCmd
   class CLI < Thor
-    
-    option :color, :type => :boolean
+    class_option :color, :type => :boolean
+
     desc "list", "List current monitors"
     long_desc <<-LONGDESC
-      \x5$ uptimerobot_cmd list
-      \x5$ uptimerobot_cmd list --color
+      List current monitored services.\n
+      
+      $ uptimerobot_cmd list\n
+      $ uptimerobot_cmd list --color
     LONGDESC
     def list
       ENV['UPTIMEROBOT_COLORIZE'] = '1' if options[:color]
-      puts UptimerobotCmd.get_list_monitors
+      monitors = UptimerobotCmd.get_monitors
+      table_title = 'Monitoring %d site(s)' % monitors.count
+      puts print_monitors(monitors, table_title)
     end
-    
-    option :color, :type => :boolean
+
     desc "contacts", "List current contacts for monitors"
     long_desc <<-LONGDESC
-      \x5$ uptimerobot_cmd contacts
-      \x5$ uptimerobot_cmd contacts --color
+      List available contact information.\n
+
+      $ uptimerobot_cmd contacts\n
+      $ uptimerobot_cmd contacts --color
     LONGDESC
     def contacts
       ENV['UPTIMEROBOT_COLORIZE'] = '1' if options[:color]
-      puts UptimerobotCmd.list_alert_contacts
+      contacts = UptimerobotCmd.get_alert_contacts
+      table_title = 'Listing %d contact(s)' % contacts.count
+      puts print_contacts(contacts, table_title)
     end
     
-    option :contact
-    option :name
+    option :contact, :banner => "<contact_id>"
+    option :name, :banner => "<friendly name>"
     desc "add", "Add new service for monitoring"
     long_desc <<-LONGDESC
-      \x5$ uptimerobot_cmd add http://example.com --contact=1234567
-      \x5$ uptimerobot_cmd add http://example.com --name=Example --contact=1234567
-      \x5$ uptimerobot_cmd add http://example.com --name="Example Website" --contact=1234567
+      You need to provide `--contact` option or must set `UPTIMEROBOT_DEFAULT_CONTACT`
+      environment variable.
+
+      $ uptimerobot_cmd add http://example.com --contact=1234567\n
+      $ uptimerobot_cmd add http://example.com --name=Example --contact=1234567\n
+      $ uptimerobot_cmd add http://example.com --name="Example Website" --contact=1234567
     LONGDESC
     def add(url)
+      ENV['UPTIMEROBOT_COLORIZE'] = '1' if options[:color]
+
       my_options = {}
       my_options[:monitor_url] = url if url =~ /\A#{URI::regexp}\z/
       unless my_options[:monitor_url]
@@ -48,56 +60,102 @@ module UptimerobotCmd
         exit
       end
       my_options[:friendly_name] = options[:name] if options[:name]
-      
-      begin
-        response = UptimerobotCmd.add_new_monitor(my_options)
-        if response[0] == 200 and response[1] == "ok"
-          message = "#{my_options[:monitor_url]} has been added."
-        else
-          message = "Error. Response code: #{response[0]}, status: #{response[1]}"
+
+      duplicate_entries = UptimerobotCmd.search_in_monitors(url)
+      if duplicate_entries.count > 0
+        table_title = 'Found duplicate %d monitor(s)' % duplicate_entries.count
+        puts print_monitors(duplicate_entries, table_title)
+        exit
+      else
+        begin
+          response = UptimerobotCmd.add_new_monitor(my_options)
+          if response[0] == 200 and response[1] == "ok"
+            message = "#{my_options[:monitor_url]} has been added."
+          else
+            message = "Error. Response code: #{response[0]}, status: #{response[1]}"
+          end
+          puts message
+        rescue UptimerobotCmd::OptionsError => e
+          puts e
         end
-        puts message
-      rescue UptimerobotCmd::OptionsError => e
-        puts e
       end
     end
     
     desc "delete", "Delete monitor"
     def delete(input)
+      ENV['UPTIMEROBOT_COLORIZE'] = '1' if options[:color]
       search = UptimerobotCmd.search_in_monitors(input)
-      puts search
-      # monitors = UptimerobotCmd.get_monitors
-      # puts monitors
-      # is_url = true if name_or_url =~ /\A#{URI::regexp}\z/
+      delete_id = nil
+      if search.count > 1
+        puts print_monitors(search, 'Found %d monitor(s)' % search.count)
+        ask_delete_id = ask("Please enter ID number:").to_i
+        delete_id = ask_delete_id if ask_delete_id > 0
+      else
+        ask_user = "You are going to delete %{name} [%{url}]" % {
+          name: search.first['friendlyname'],
+          url: search.first['url'],
+        }
+        result = ask(ask_user, :limited_to => ['y', 'n'])
+        delete_id = search.first['id'] if result == 'y'
+      end
+      
+      if delete_id
+        response = UptimerobotCmd.delete_monitor(monitor_id: delete_id)
+        if response[0] == 200 and response[1] == "ok"
+          message = "Site has been deleted."
+        else
+          message = "Error. Response code: #{response[0]}, status: #{response[1]}"
+        end
+        puts message
+      else
+        puts "Delete canceled..."
+      end
     end
     
-    option :color, :type => :boolean
     desc "search NAME or URL", "Search in monitored services"
     def search(input)
       ENV['UPTIMEROBOT_COLORIZE'] = '1' if options[:color]
-      puts UptimerobotCmd.get_search_results(input)
+      results = UptimerobotCmd.search_in_monitors(input)
+      table_title = 'Found %d monitor(s)' % results.count
+      puts print_monitors(results, table_title)
     end
     
-    # option :monitor_id, :required => true
-    # desc "delete_monitor", "Delete monitor via given monitor_id"
-    # def delete_monitor
-    #   my_options = {}
-    #   my_options[:monitor_id] = options[:monitor_id]
-    #   begin
-    #     response = UptimerobotCmd.delete_monitor(my_options)
-    #     if response[0] == 200 and response[1] == "ok"
-    #       message = "Site has been deleted."
-    #     else
-    #       message = "Error. Response code: #{response[0]}, status: #{response[1]}"
-    #     end
-    #     puts message
-    #   rescue UptimerobotCmd::OptionsError => e
-    #     puts e
-    #   end
-    # end
-    
-    
-    
+    no_commands do
+      def print_contacts(contacts, table_title)
+        table_title = set_color(table_title, :yellow) if ENV['UPTIMEROBOT_COLORIZE']
+        rows = []
+        contacts.each do |contact|
+          contact_id = contact['id']
+          contact_id = set_color(contact_id, :green) if ENV['UPTIMEROBOT_COLORIZE']
+          contact_info = contact['value']
+          contact_info = set_color(contact_info, :white) if ENV['UPTIMEROBOT_COLORIZE']
+          rows << [contact_id, contact_info]
+        end
+        Terminal::Table.new :headings => ['ID', 'Info'],
+                            :rows => rows,
+                            :title => table_title
+      end
+      
+      def print_monitors(monitors, table_title)
+        table_title = set_color(table_title, :yellow) if ENV['UPTIMEROBOT_COLORIZE']
+        rows = []
+        monitors.each do |monitor|
+          monitor_id = monitor['id']
+          monitor_id = set_color(monitor_id, :green) if ENV['UPTIMEROBOT_COLORIZE']
+          status_data = ::UptimerobotCmd.human_readable_status(monitor['status'])
+          status = status_data[0]
+          status = set_color(status, status_data[1], :bold) if ENV['UPTIMEROBOT_COLORIZE']
+          friendly_name = monitor['friendlyname']
+          friendly_name = set_color(friendly_name, :white) if ENV['UPTIMEROBOT_COLORIZE']
+          url = monitor['url']
+          url = set_color(url, :cyan) if ENV['UPTIMEROBOT_COLORIZE']
+          rows << [monitor_id, status, friendly_name, url]
+        end
+        Terminal::Table.new :headings => ['ID', 'Status', 'Name', 'Url'],
+                            :rows => rows,
+                            :title => table_title
+      end
+    end
 
   end
 end
