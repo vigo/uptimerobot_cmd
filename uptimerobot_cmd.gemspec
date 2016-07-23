@@ -25,7 +25,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'minitest-reporters', '~> 1.1', '>= 1.1.10'
 
   spec.add_runtime_dependency 'httparty', '~> 0.13.7'
-  spec.add_runtime_dependency 'colorize', '~> 0.8.1'
   spec.add_runtime_dependency 'terminal-table', '~> 1.6'
   spec.add_runtime_dependency 'thor', '~> 0.19.1'
 end
