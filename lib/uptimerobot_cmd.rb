@@ -6,7 +6,7 @@ module UptimerobotCmd
   APIKEY = ENV['UPTIMEROBOT_APIKEY'] || nil
   ENDPOINT_BASE_URL = 'https://api.uptimerobot.com'
   ENDPOINT_SERVICE_URLS = {
-    get_monitors: '%{base_url}/getMonitors?apiKey=%{apikey}&%{json_result}',
+    get_monitors: '%{base_url}/getMonitors?apiKey=%{apikey}&limit=%{limit}&offset=%{offset}&%{json_result}',
     get_alert_contacts: '%{base_url}/getAlertContacts?apiKey=%{apikey}&%{json_result}',
     add_new_monitor: '%{base_url}/newMonitor?apiKey=%{apikey}&%{json_result}'\
                      '&monitorType=%{monitor_type}'\
@@ -49,8 +49,32 @@ module UptimerobotCmd
   
   def self.get_monitors
     if ::UptimerobotCmd.apikey_defined
-      response = HTTParty.get(::UptimerobotCmd.build_service_url(:get_monitors))
-      response["monitors"]["monitor"]
+      limit = 50
+      offset = 0
+      options = {
+        limit: limit,
+        offset: offset,
+      }
+      output = []
+      response = HTTParty.get(::UptimerobotCmd.build_service_url(:get_monitors, options))
+      total = response["total"].to_i
+      output += response["monitors"]["monitor"]
+      
+      if total > limit
+        max_pages = total / limit
+        left_over = total % limit
+        max_pages += 1 if left_over > 0
+        current_page = 1
+        while current_page <= max_pages
+          options[:offset] = offset
+          response = HTTParty.get(::UptimerobotCmd.build_service_url(:get_monitors, options))
+          output += response["monitors"]["monitor"]
+          offset = current_page * limit
+          current_page += 1
+        end
+      end
+      
+      output
     end
   end
   

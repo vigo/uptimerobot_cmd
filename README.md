@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/vigo/uptimerobot_cmd.svg?branch=master)](https://travis-ci.org/vigo/uptimerobot_cmd)
-![Version](https://img.shields.io/badge/version-0.3.0-yellow.svg)
+![Version](https://img.shields.io/badge/version-0.3.1-yellow.svg)
 
 
 # UptimerobotCmd
