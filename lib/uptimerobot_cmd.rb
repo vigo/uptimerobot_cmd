@@ -55,12 +55,12 @@ module UptimerobotCmd
         limit: limit,
         offset: offset,
       }
-      output = []
       response = HTTParty.get(::UptimerobotCmd.build_service_url(:get_monitors, options))
       total = response["total"].to_i
-      output += response["monitors"]["monitor"]
+      output = response["monitors"]["monitor"]
       
       if total > limit
+        output = []
         max_pages = total / limit
         left_over = total % limit
         max_pages += 1 if left_over > 0
