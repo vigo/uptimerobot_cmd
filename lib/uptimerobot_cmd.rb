@@ -60,16 +60,15 @@ module UptimerobotCmd
       output = response["monitors"]["monitor"]
       
       if total > limit
-        output = []
         max_pages = total / limit
         left_over = total % limit
         max_pages += 1 if left_over > 0
         current_page = 1
-        while current_page <= max_pages
-          options[:offset] = offset
+        while current_page < max_pages
+          options[:offset] = current_page * limit
+          puts "fetching... #{options[:offset]}"
           response = HTTParty.get(::UptimerobotCmd.build_service_url(:get_monitors, options))
           output += response["monitors"]["monitor"]
-          offset = current_page * limit
           current_page += 1
         end
       end
