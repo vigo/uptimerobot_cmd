@@ -17,8 +17,8 @@ class UptimerobotCmdTest < Minitest::Test
     monitors = ::UptimerobotCmd.get_monitors
 
     assert_instance_of Array, monitors
-    assert_match /111111111/, monitors.to_s        # GIVE_MONITOR_ID_HERE
-    assert_match /google.com/, monitors.to_s       # GIVE_URL_HERE
+    assert_match (/111111111/), monitors.to_s        # GIVE_MONITOR_ID_HERE
+    assert_match (/google.com/), monitors.to_s       # GIVE_URL_HERE
   end
 
   def test_add_new_monitor_for_you_without_options
@@ -33,7 +33,7 @@ class UptimerobotCmdTest < Minitest::Test
 
   def test_add_new_monitor_for_you_without_contact_id
     skip # delete this if you want to run it
-    buffer = ENV['UPTIMEROBOT_DEFAULT_CONTACT']
+    # buffer = ENV['UPTIMEROBOT_DEFAULT_CONTACT']
     ENV.delete('UPTIMEROBOT_DEFAULT_CONTACT')
     assert_raises(::UptimerobotCmd::OptionsError) { ::UptimerobotCmd.add_new_monitor(monitor_url: 'https://google.com') }
   end
